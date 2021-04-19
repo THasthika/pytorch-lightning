@@ -15,10 +15,12 @@
 from unittest import mock
 
 import pytest
+import torch
 from torch import optim
 
 from pytorch_lightning import Callback, Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.core.decorators import auto_move_data
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.profiler import AdvancedProfiler, BaseProfiler, PyTorchProfiler, SimpleProfiler
 from pytorch_lightning.trainer.callback_hook import warning_cache as callback_warning_cache
@@ -218,3 +220,25 @@ def test_v1_5_0_profiler_output_filename(tmpdir, cls):
         profiler = cls(output_filename=filepath)
     assert profiler.dirpath == tmpdir
     assert profiler.filename == "test"
+
+
+def test_v1_5_0_trainer_training_trick_mixin(tmpdir):
+    model = BoringModel()
+    trainer = Trainer(default_root_dir=tmpdir, max_epochs=1, checkpoint_callback=False, logger=False)
+    trainer.fit(model)
+    with pytest.deprecated_call(match="is deprecated in v1.3 and will be removed in v1.5"):
+        trainer.print_nan_gradients()
+
+    dummy_loss = torch.tensor(1.0)
+    with pytest.deprecated_call(match="is deprecated in v1.3 and will be removed in v1.5"):
+        trainer.detect_nan_tensors(dummy_loss)
+
+
+def test_v1_5_0_auto_move_data():
+    with pytest.deprecated_call(match="deprecated in v1.3 and will be removed in v1.5.*was applied to `bar`"):
+
+        class Foo:
+
+            @auto_move_data
+            def bar(self):
+                pass

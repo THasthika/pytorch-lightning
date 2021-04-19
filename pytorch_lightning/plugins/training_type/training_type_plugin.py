@@ -13,7 +13,7 @@
 # limitations under the License.
 import contextlib
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, Generator, Iterable, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Any, Callable, Dict, Generator, Iterable, Optional, Tuple, TYPE_CHECKING, TypeVar, Union
 
 import torch
 from torch.nn import Module
@@ -30,9 +30,13 @@ from pytorch_lightning.utilities.cloud_io import load as pl_load
 if TYPE_CHECKING:
     from pytorch_lightning.trainer.trainer import Trainer
 
+TBroadcast = TypeVar("T")
+
 
 class TrainingTypePlugin(Plugin, ABC):
-    """A Plugin to change the behaviour of the training, validation and test-loop."""
+    """
+    Base class for all training type plugins that change the behaviour of the training, validation and test-loop.
+    """
 
     def __init__(self) -> None:
         self._model = None
@@ -88,7 +92,7 @@ class TrainingTypePlugin(Plugin, ABC):
         """Forces all possibly joined processes to wait for each other"""
 
     @abstractmethod
-    def broadcast(self, obj: object, src: int = 0) -> object:
+    def broadcast(self, obj: TBroadcast, src: int = 0) -> TBroadcast:
         """Broadcasts an object to all processes"""
 
     @abstractmethod
@@ -282,3 +286,7 @@ class TrainingTypePlugin(Plugin, ABC):
     @call_configure_sharded_model_hook.setter
     def call_configure_sharded_model_hook(self, mode: bool) -> None:
         self._call_configure_sharded_model_hook = mode
+
+    @classmethod
+    def register_plugins(cls, plugin_registry):
+        pass

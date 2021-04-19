@@ -114,13 +114,13 @@ class ModelHooks:
         """
         Sets the model to eval during the val loop
         """
-        self.eval()
+        self.trainer.model.eval()
 
     def on_validation_model_train(self) -> None:
         """
         Sets the model to train during the val loop
         """
-        self.train()
+        self.trainer.model.train()
 
     def on_validation_batch_start(self, batch: Any, batch_idx: int, dataloader_idx: int) -> None:
         """
@@ -172,19 +172,19 @@ class ModelHooks:
         """
         Sets the model to train during the test loop
         """
-        self.train()
+        self.trainer.model.train()
 
     def on_test_model_eval(self) -> None:
         """
         Sets the model to eval during the test loop
         """
-        self.eval()
+        self.trainer.model.eval()
 
     def on_predict_model_eval(self) -> None:
         """
         Sets the model to eval during the predict loop
         """
-        self.eval()
+        self.trainer.model.eval()
 
     def on_epoch_start(self) -> None:
         """
@@ -260,7 +260,7 @@ class ModelHooks:
 
     def on_before_zero_grad(self, optimizer: Optimizer) -> None:
         """
-        Called after optimizer.step() and before optimizer.zero_grad().
+        Called after ``training_step()`` and before ``optimizer.zero_grad()``.
 
         Called in the training loop after taking an optimizer step and before zeroing grads.
         Good place to inspect weight information with weights updated.
@@ -268,9 +268,12 @@ class ModelHooks:
         This is where it is called::
 
             for optimizer in optimizers:
-                optimizer.step()
+                out = training_step(...)
+
                 model.on_before_zero_grad(optimizer) # < ---- called here
                 optimizer.zero_grad()
+
+                backward()
 
         Args:
             optimizer: The optimizer for which grads should be zeroed.
